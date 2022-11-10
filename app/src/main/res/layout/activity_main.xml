@@ -64,15 +64,5 @@
         android:textSize="20dp" />
 
 
-    <Button
-        android:id="@+id/clear_alarm"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/button_style"
-        android:padding="12dp"
-        android:text="Clear Alarms"
-        android:textColor="@color/black"
-        android:textSize="20dp" />
+
 </LinearLayout>

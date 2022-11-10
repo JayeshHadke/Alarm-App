@@ -8,8 +8,10 @@ import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -28,63 +30,79 @@ import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
-    Button set_Alarm, clearAlarm;
+    // Static Elements
+    static final int NOTIFICATION_ID = 1;
+    static final String CHANNEL_ID = "general";
+
+    // Variable Declaration
+    Button set_Alarm;
     TextClock text_clock;
     ListView listView;
+
     long alarms = 1;
     String time = "";
     final int timeGap = 1;
+    int requestCode = 100;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getSupportActionBar().hide();
+
+        // Initializing values to variable
         set_Alarm = findViewById(R.id.set_alarm);
-        clearAlarm = findViewById(R.id.clear_alarm);
         text_clock = findViewById(R.id.textClock);
-        text_clock.setFormat12Hour("hh:mm aa");
         listView = findViewById(R.id.list_view);
+
+        text_clock.setFormat12Hour("hh:mm aa");
         LinkedList<String> list = new LinkedList<String>();
-
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        SimpleDateFormat sdf = new SimpleDateFormat("hh:mm aa");
+        new mediaPlayerInstance(this, Settings.System.DEFAULT_RINGTONE_URI);
 
+        // set alarm onclick listener
         set_Alarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SimpleDateFormat sdf = new SimpleDateFormat("hh:mm aa");
+                // current time in millis
                 long time_ = System.currentTimeMillis();
+
+                // if the button is not pressed continuously in one minute then the count of 5 minutes restart
                 if (!sdf.format(time_).equalsIgnoreCase(time)) {
                     alarms = 1;
                 }
-                long modifiedTime = time_ + alarms++ * timeGap * 60 * 1000;
+
+                // if user press button at 1:01:22PM then next time will be for 1:06:00PM
+                long modifiedTime = time_ + alarms++ * timeGap * 60 * 1000 - ((time_ / 1000) % 60) * 1000;
                 list.add(sdf.format(modifiedTime));
                 time = sdf.format(time_);
                 update(list);
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 100, new Intent(MainActivity.this, MyBroadcastReceiver.class), PendingIntent.FLAG_UPDATE_CURRENT);
+                System.out.println("SET FOR " + new SimpleDateFormat("hh:mm:ss aa").format(modifiedTime));
+                // creating intent for alarm broadcast
+                Intent intent = new Intent(MainActivity.this, MyBroadcastReceiver.class);
+                intent.putExtra("TIME", modifiedTime);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, requestCode++, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
                 alarmManager.set(AlarmManager.RTC_WAKEUP, modifiedTime, pendingIntent);
             }
         });
-        clearAlarm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (list.size() == 0) {
-                    Toast.makeText(MainActivity.this, "No Alarm Set!", Toast.LENGTH_SHORT).show();
-                }
-                list.clear();
-                update(list);
-            }
-        });
+
+        // on clock text change listener
         text_clock.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
             }
 
+            /* this part deals with the deletion of alarms from displayed list
+             * when time changes, and if current time and alarm set time is same then the set alarm will get removed from linkedlist*/
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+
                 if (list.size() != 0 && text_clock.getText().toString().equalsIgnoreCase(list.getFirst())) {
-                    System.out.println("In side ---------------");
                     Toast.makeText(MainActivity.this, "Alarm for " + text_clock.getText() + " is Active!", Toast.LENGTH_SHORT).show();
                     list.removeFirst();
                     update(list);
@@ -98,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // this method helps to update the list of alarms and display in linearlist view
     void update(LinkedList<String> list) {
         listView.setAdapter(new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, list) {
             @NonNull
