@@ -46,31 +46,39 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
         Bitmap largeBitmap = bitmapDrawable.getBitmap();
         Notification notification;
 
-        Intent snoozeIntent = new Intent(context, onActionReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 1001, snoozeIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+//        Intent snoozeIntent = new Intent(context, onActionReceiver.class);
+//        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 1001, snoozeIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            notification = new Notification.Builder(context)
-                    .setLargeIcon(largeBitmap)
-                    .setAutoCancel(true)
-                    .setSmallIcon(R.drawable.alarm)
-                    .setContentText(content)
-                    .setSubText(subText)
-                    .setActions(new Notification.Action(R.drawable.alarm, "Snooze", pendingIntent))
-                    .setChannelId(MainActivity.CHANNEL_ID)
-                    .build();
-            nm.createNotificationChannel(new NotificationChannel(MainActivity.CHANNEL_ID, "New Channel", NotificationManager.IMPORTANCE_HIGH));
-        } else {
-            notification = new Notification.Builder(context)
-                    .setLargeIcon(largeBitmap)
-                    .setContentIntent(pendingIntent)
-                    .setAutoCancel(true)
-                    .setSmallIcon(R.drawable.alarm)
-                    .setContentText(content)
-                    .setSubText(subText)
-                    .build();
-        }
-        nm.notify(MainActivity.NOTIFICATION_ID, notification);
+        Intent snoozeIntent = new Intent(context, alarmFullPage.class);
+//        PendingIntent pendingIntent = PendingIntent.getActivity(context, 1011, snoozeIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        snoozeIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        snoozeIntent.putExtra("TIME", content);
+        context.startActivity(snoozeIntent);
+
+
+        //
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            notification = new Notification.Builder(context)
+//                    .setLargeIcon(largeBitmap)
+//                    .setAutoCancel(true)
+//                    .setSmallIcon(R.drawable.alarm)
+//                    .setContentText(content)
+//                    .setSubText(subText)
+//                    .setActions(new Notification.Action(R.drawable.alarm, "Snooze", pendingIntent))
+//                    .setChannelId(MainActivity.CHANNEL_ID)
+//                    .build();
+//            nm.createNotificationChannel(new NotificationChannel(MainActivity.CHANNEL_ID, "New Channel", NotificationManager.IMPORTANCE_HIGH));
+//        } else {
+//            notification = new Notification.Builder(context)
+//                    .setLargeIcon(largeBitmap)
+//                    .setContentIntent(pendingIntent)
+//                    .setAutoCancel(true)
+//                    .setSmallIcon(R.drawable.alarm)
+//                    .setContentText(content)
+//                    .setSubText(subText)
+//                    .build();
+//        }
+//        nm.notify(MainActivity.NOTIFICATION_ID, notification);
 
     }
 }
